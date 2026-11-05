@@ -61,6 +61,11 @@ body {
   margin: 0;
 }
 
+.login-hint {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 label {
   display: flex;
   flex-direction: column;
@@ -160,6 +165,11 @@ select:focus {
   color: white;
   font-weight: 600;
   cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Products */
@@ -281,6 +291,100 @@ select:focus {
   font-size: 14px;
 }
 
+/* Inventory */
+.inventory-panel {
+  margin-bottom: 60px;
+}
+
+.inventory-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.inventory-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.inventory-stat strong {
+  color: var(--text);
+  font-size: 24px;
+}
+
+.inventory-table-wrap {
+  overflow-x: auto;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.inventory-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.inventory-table th {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.inventory-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.inventory-table .low-stock td:nth-child(4) {
+  color: #b45309;
+  font-weight: 650;
+}
+
+.inventory-table .out-of-stock td:nth-child(4) {
+  color: var(--danger);
+  font-weight: 650;
+}
+
+.inventory-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.inventory-product img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.stock-update {
+  display: flex;
+  gap: 8px;
+}
+
+.stock-update input {
+  width: 90px;
+  padding: 8px 10px;
+}
+
 /* Cart */
 .overlay {
   position: fixed;
@@ -373,6 +477,24 @@ select:focus {
   font-size: 13px;
 }
 
+.cart-select {
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.cart-select input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--black);
+}
+
 .qty {
   display: flex;
   align-items: center;
@@ -398,6 +520,99 @@ select:focus {
   display: flex;
   justify-content: space-between;
   margin-bottom: 14px;
+  font-size: 17px;
+}
+
+/* Checkout */
+.checkout-dialog {
+  width: min(620px, calc(100% - 32px));
+  max-height: min(90dvh, 900px);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  color: var(--text);
+}
+
+.checkout-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.checkout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.checkout-header h2,
+.checkout-section h3 {
+  margin: 0;
+}
+
+.checkout-header p {
+  margin: 5px 0 0;
+  font-size: 13px;
+}
+
+.checkout-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkout-section h3 {
+  font-size: 16px;
+}
+
+.checkout-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.checkout-item,
+.checkout-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.checkout-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.checkout-fields .field-wide {
+  grid-column: 1 / -1;
+}
+
+.checkout-fields input,
+.checkout-section select {
+  width: 100%;
+}
+
+.checkout-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.checkout-grand-total {
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
   font-size: 17px;
 }
 
@@ -439,5 +654,23 @@ select:focus {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+  }
+
+  .inventory-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-form {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 460px) {
+  .checkout-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-fields .field-wide {
+    grid-column: auto;
   }
 }

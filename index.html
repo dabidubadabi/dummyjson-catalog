@@ -24,6 +24,7 @@
 
       <button class="btn primary full">Log in</button>
       <p id="loginError" class="error"></p>
+      <p class="login-hint muted">Customer: user123 / password<br />Admin: admin / admin123</p>
     </form>
   </section>
 
@@ -35,7 +36,7 @@
 
         <input id="search" type="search" placeholder="Search products..." />
 
-        <select id="sortSelect">
+        <select id="sortSelect" aria-label="Sort products">
           <option value="suggested">Suggested</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
@@ -66,6 +67,38 @@
         <span id="pageInfo"></span>
         <button id="nextBtn" class="ghost-button">Next</button>
       </div>
+
+      <section id="inventoryPanel" class="inventory-panel hidden" aria-label="Inventory management">
+        <div class="inventory-summary">
+          <article class="inventory-stat">
+            <span>Products</span>
+            <strong id="inventoryProductCount">0</strong>
+          </article>
+          <article class="inventory-stat">
+            <span>Total units</span>
+            <strong id="inventoryUnitCount">0</strong>
+          </article>
+          <article class="inventory-stat">
+            <span>Low or out of stock</span>
+            <strong id="inventoryAlertCount">0</strong>
+          </article>
+        </div>
+
+        <div class="inventory-table-wrap">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Price</th>
+                <th scope="col">Stock</th>
+                <th scope="col">Status</th>
+                <th scope="col">Update stock</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryRows"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -82,13 +115,74 @@
 
     <div class="cart-footer">
       <div class="total-row">
-        <span>Total</span>
+        <span>Selected items</span>
         <strong id="cartTotal">$0.00</strong>
       </div>
 
       <button id="checkoutBtn" class="btn primary full">Checkout</button>
     </div>
   </aside>
+
+  <dialog id="checkoutDialog" class="checkout-dialog">
+    <form id="checkoutForm" class="checkout-form">
+      <div class="checkout-header">
+        <div>
+          <h2>Checkout</h2>
+          <p class="muted">Demo checkout — no payment will be processed.</p>
+        </div>
+        <button id="closeCheckoutBtn" class="close-button" type="button" aria-label="Close checkout">×</button>
+      </div>
+
+      <section class="checkout-section" aria-labelledby="checkoutItemsTitle">
+        <h3 id="checkoutItemsTitle">Selected products</h3>
+        <div id="checkoutItems" class="checkout-items"></div>
+      </section>
+
+      <section class="checkout-section" aria-labelledby="shippingAddressTitle">
+        <h3 id="shippingAddressTitle">Shipping address</h3>
+        <div class="checkout-fields">
+          <label class="field-wide">Full name
+            <input name="fullName" autocomplete="name" required />
+          </label>
+          <label class="field-wide">Street address
+            <input name="address" autocomplete="street-address" minlength="5" required />
+          </label>
+          <label>City
+            <input name="city" autocomplete="address-level2" required />
+          </label>
+          <label>State / province
+            <input name="region" autocomplete="address-level1" required />
+          </label>
+          <label>Postal code
+            <input name="postalCode" autocomplete="postal-code" required />
+          </label>
+          <label>Country
+            <input name="country" autocomplete="country-name" required />
+          </label>
+        </div>
+      </section>
+
+      <section class="checkout-section" aria-labelledby="paymentMethodTitle">
+        <h3 id="paymentMethodTitle">Payment method</h3>
+        <label>Choose a method
+          <select name="paymentMethod" required>
+            <option value="">Select a payment method</option>
+            <option value="card">Credit / debit card (demo)</option>
+            <option value="paypal">PayPal (demo)</option>
+            <option value="cash-on-delivery">Cash on delivery</option>
+          </select>
+        </label>
+      </section>
+
+      <div class="checkout-totals">
+        <div><span>Items subtotal</span><strong id="checkoutSubtotal">$0.00</strong></div>
+        <div><span>Shipping</span><strong id="checkoutShipping">$5.00</strong></div>
+        <div class="checkout-grand-total"><span>Order total</span><strong id="checkoutTotal">$0.00</strong></div>
+      </div>
+      <p id="checkoutError" class="error" role="alert"></p>
+      <button id="placeOrderBtn" class="btn primary full" type="submit">Place order</button>
+    </form>
+  </dialog>
 
   <div id="toast" class="toast"></div>
 
