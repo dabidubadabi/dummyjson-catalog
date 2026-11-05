@@ -1,16 +1,32 @@
 const API = "https://dummyjson.com";
 const LIMIT = 12;
-const STORAGE_KEY = "dummyjson-catalog-changes";
+const CART_KEY = "dummyjson-cart";
+const USER_KEY = "dummyjson-user";
 
 const grid = document.getElementById("grid");
 const status = document.getElementById("status");
 const searchInput = document.getElementById("search");
+const sortSelect = document.getElementById("sortSelect");
 const pageInfo = document.getElementById("pageInfo");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
+
+const cartBtn = document.getElementById("cartBtn");
+const cartCount = document.getElementById("cartCount");
+const cartDialog = document.getElementById("cartDialog");
+const cartItems = document.getElementById("cartItems");
+const cartTotal = document.getElementById("cartTotal");
+const closeCartBtn = document.getElementById("closeCartBtn");
+const checkoutBtn = document.getElementById("checkoutBtn");
+
+const loginBtn = document.getElementById("loginBtn");
+const loginDialog = document.getElementById("loginDialog");
+const loginForm = document.getElementById("loginForm");
+const loginCancelBtn = document.getElementById("loginCancelBtn");
+
 const addBtn = document.getElementById("addBtn");
-const dialog = document.getElementById("productDialog");
-const form = document.getElementById("productForm");
+const productDialog = document.getElementById("productDialog");
+const productForm = document.getElementById("productForm");
 const dialogTitle = document.getElementById("dialogTitle");
 const cancelBtn = document.getElementById("cancelBtn");
 
@@ -18,88 +34,130 @@ let skip = 0;
 let total = 0;
 let editingId = null;
 let allProducts = [];
+let cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
+let currentUser = JSON.parse(localStorage.getItem(USER_KEY)) || null;
 
-function getLocalChanges() {
-  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-    added: [],
-    updated: {},
-    deleted: []
-  };
+function saveCart() {
+  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  updateCartCount();
 }
 
-function saveLocalChanges(changes) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(changes));
-}
-
-function applyLocalChanges(products) {
-  const changes = getLocalChanges();
-
-  const remaining = products.filter(
-    product => !changes.deleted.includes(product.id)
-  );
-
-  const edited = remaining.map(product => {
-    if (changes.updated[product.id]) {
-      return { ...product, ...changes.updated[product.id] };
-    }
-    return product;
-  });
-
-  return [...changes.added, ...edited];
-}
-
-async function fetchProducts() {
-  const response = await fetch(
-    `${API}/products?limit=0&skip=0`
-  );
-
-  if (!response.ok) {
-    throw new Error("Could not load products from DummyJSON");
-  }
-
-  const data = await response.json();
-  return applyLocalChanges(data.products);
+function updateCartCount() {
+  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+  cartCount.textContent = count;
 }
 
 function formatPrice(value) {
-  return "$" + Number(value).toFixed(2);
+  return "$" + Number(value || 0).toFixed(2);
+}
+
+function getCartTotal() {
+  return cart.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0
+  );
 }
 
 function createCard(product) {
   const card = document.createElement("article");
   card.className = "card";
 
+  const stock = product.stock ?? 0;
+  const stockClass = stock > 10 ? "stock" : "stock low";
+  const stockText = stock > 10 ? `In stock: ${stock}` : `Low stock: ${stock}`;
+
   card.innerHTML = `
-    <img src="${product.thumbnail}" alt="${product.title}" />
+    <div class="image-wrap">
+      <span class="badge">${product.category || "Product"}</span>
+      <img src="${product.thumbnail}" alt="${product.title}" loading="lazy" />
+    </div>
+
     <div class="card-body">
       <h3>${product.title}</h3>
       <div class="price">${formatPrice(product.price)}</div>
+      <div class="meta">⭐ ${product.rating ?? "No rating"}</div>
       <div class="meta">${product.brand || "No brand"}</div>
-      <div class="meta">Stock: ${product.stock ?? 0}</div>
+      <div class="${stockClass}">${stockText}</div>
+
       <div class="actions">
+        <button class="add-cart-btn">Add to cart</button>
         <button class="editBtn">Edit</button>
         <button class="deleteBtn">Delete</button>
       </div>
     </div>
   `;
 
-  card.querySelector(".editBtn").onclick = () => openForm(product);
+  card.querySelector(".add-cart-btn").onclick = () => addToCart(product);
+  card.querySelector(".editBtn").onclick = () => openProductForm(product);
   card.querySelector(".deleteBtn").onclick = () => deleteProduct(product);
 
+  const image = card.querySelector("img");
+
+  image.onerror = () => {
+    image.src =
+      "https://dummyjson.com/product-images/beauty/essence-mascara-lash-princess/1.webp";
+  };
+
   return card;
+}
+
+async function loadProducts() {
+  status.textContent = "Loading products...";
+
+  try {
+    const response = await fetch(`${API}/products?limit=0&skip=0`);
+
+    if (!response.ok) {
+      throw new Error("Could not load products");
+    }
+
+    const data = await response.json();
+    allProducts = data.products;
+
+    showProducts();
+  } catch (error) {
+    status.textContent = "Could not load products.";
+  }
+}
+
+function getFilteredProducts() {
+  const search = searchInput.value.trim().toLowerCase();
+  const sortValue = sortSelect.value;
+
+  let products = allProducts.filter(product =>
+    product.title.toLowerCase().includes(search)
+  );
+
+  if (sortValue === "price-asc") {
+    products.sort((a, b) => a.price - b.price);
+  }
+
+  if (sortValue === "price-desc") {
+    products.sort((a, b) => b.price - a.price);
+  }
+
+  if (sortValue === "title-asc") {
+    products.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  if (sortValue === "title-desc") {
+    products.sort((a, b) => b.title.localeCompare(a.title));
+  }
+
+  if (sortValue === "rating-desc") {
+    products.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
+  }
+
+  return products;
 }
 
 function showProducts() {
   grid.innerHTML = "";
 
-  const search = searchInput.value.trim().toLowerCase();
+  const products = getFilteredProducts();
+  total = products.length;
 
-  const filtered = allProducts.filter(product =>
-    product.title.toLowerCase().includes(search)
-  );
-
-  total = filtered.length;
-  const visibleProducts = filtered.slice(skip, skip + LIMIT);
+  const visibleProducts = products.slice(skip, skip + LIMIT);
 
   visibleProducts.forEach(product => {
     grid.appendChild(createCard(product));
@@ -115,37 +173,203 @@ function showProducts() {
   status.textContent = `${total} product(s) found.`;
 }
 
-async function loadProducts() {
-  status.textContent = "Loading products...";
+function addToCart(product) {
+  const existing = cart.find(item => item.id === product.id);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      thumbnail: product.thumbnail,
+      quantity: 1
+    });
+  }
+
+  saveCart();
+  status.textContent = `"${product.title}" added to cart.`;
+}
+
+function showCart() {
+  cartItems.innerHTML = "";
+
+  if (cart.length === 0) {
+    cartItems.innerHTML = `<p class="empty-cart">Your cart is empty.</p>`;
+    cartTotal.textContent = formatPrice(0);
+    cartDialog.showModal();
+    return;
+  }
+
+  cart.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "cart-item";
+
+    row.innerHTML = `
+      <img src="${item.thumbnail}" alt="${item.title}" />
+      <div>
+        <h4>${item.title}</h4>
+        <div class="meta">${formatPrice(item.price)} each</div>
+        <div class="quantity-controls">
+          <button class="decrease">−</button>
+          <span>${item.quantity}</span>
+          <button class="increase">+</button>
+          <button class="remove">Remove</button>
+        </div>
+      </div>
+      <div class="cart-item-price">
+        <strong>${formatPrice(item.price * item.quantity)}</strong>
+      </div>
+    `;
+
+    row.querySelector(".increase").onclick = () => {
+      item.quantity += 1;
+      saveCart();
+      showCart();
+    };
+
+    row.querySelector(".decrease").onclick = () => {
+      item.quantity -= 1;
+
+      if (item.quantity <= 0) {
+        cart = cart.filter(cartItem => cartItem.id !== item.id);
+      }
+
+      saveCart();
+      showCart();
+    };
+
+    row.querySelector(".remove").onclick = () => {
+      cart = cart.filter(cartItem => cartItem.id !== item.id);
+      saveCart();
+      showCart();
+    };
+
+    cartItems.appendChild(row);
+  });
+
+  cartTotal.textContent = formatPrice(getCartTotal());
+  cartDialog.showModal();
+}
+
+async function purchaseCart() {
+  if (cart.length === 0) {
+    alert("Your cart is empty.");
+    return;
+  }
+
+  if (!currentUser) {
+    alert("Please log in before purchasing.");
+    loginDialog.showModal();
+    return;
+  }
+
+  checkoutBtn.disabled = true;
+  checkoutBtn.textContent = "Processing...";
+
+  const payload = {
+    userId: currentUser.id,
+    products: cart.map(item => ({
+      id: item.id,
+      quantity: item.quantity
+    }))
+  };
 
   try {
-    allProducts = await fetchProducts();
-    showProducts();
+    const response = await fetch(`${API}/carts/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${currentUser.accessToken}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error("Purchase failed");
+    }
+
+    const result = await response.json();
+
+    alert(
+      `Purchase successful!\n\n` +
+      `Order total: ${formatPrice(result.total)}\n` +
+      `Items: ${result.totalProducts}`
+    );
+
+    cart = [];
+    saveCart();
+    cartDialog.close();
   } catch (error) {
-    status.textContent = "Could not load products.";
+    alert("Could not complete the purchase. Please try again.");
+  } finally {
+    checkoutBtn.disabled = false;
+    checkoutBtn.textContent = "Purchase";
   }
 }
 
-function openForm(product = null) {
+async function login(event) {
+  event.preventDefault();
+
+  const username = loginForm.username.value.trim();
+  const password = loginForm.password.value;
+
+  status.textContent = "Logging in...";
+
+  try {
+    const response = await fetch(`${API}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        password,
+        expiresInMins: 60
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Invalid username or password");
+    }
+
+    currentUser = await response.json();
+
+    localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+
+    loginBtn.textContent = `Hi, ${currentUser.firstName}`;
+    loginDialog.close();
+    status.textContent = `Welcome, ${currentUser.firstName}!`;
+  } catch (error) {
+    status.textContent = "Invalid username or password.";
+  }
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem(USER_KEY);
+  loginBtn.textContent = "Log in";
+  status.textContent = "You are logged out.";
+}
+
+function openProductForm(product = null) {
   editingId = product ? product.id : null;
 
   dialogTitle.textContent = editingId ? "Edit Product" : "Add Product";
-  form.reset();
+  productForm.reset();
 
   if (product) {
-    form.title.value = product.title;
-    form.description.value = product.description || "";
-    form.price.value = product.price;
-    form.stock.value = product.stock || 0;
-    form.thumbnail.value = product.thumbnail || "";
+    productForm.title.value = product.title;
+    productForm.description.value = product.description || "";
+    productForm.price.value = product.price;
+    productForm.stock.value = product.stock || 0;
+    productForm.thumbnail.value = product.thumbnail || "";
   }
 
-  dialog.showModal();
+  productDialog.showModal();
 }
 
 function getNextId() {
-  const changes = getLocalChanges();
-  const localIds = changes.added.map(product => product.id);
+  const localIds = allProducts.map(product => product.id);
   return Math.max(1000, ...localIds) + 1;
 }
 
@@ -153,16 +377,14 @@ async function saveProduct(event) {
   event.preventDefault();
 
   const productData = {
-    title: form.title.value.trim(),
-    description: form.description.value.trim(),
-    price: Number(form.price.value),
-    stock: Number(form.stock.value),
+    title: productForm.title.value.trim(),
+    description: productForm.description.value.trim(),
+    price: Number(productForm.price.value),
+    stock: Number(productForm.stock.value),
     thumbnail:
-      form.thumbnail.value.trim() ||
+      productForm.thumbnail.value.trim() ||
       "https://dummyjson.com/product-images/beauty/essence-mascara-lash-princess/1.webp"
   };
-
-  const changes = getLocalChanges();
 
   try {
     if (editingId) {
@@ -172,7 +394,17 @@ async function saveProduct(event) {
         body: JSON.stringify(productData)
       });
 
-      changes.updated[editingId] = productData;
+      const index = allProducts.findIndex(
+        product => product.id === editingId
+      );
+
+      if (index !== -1) {
+        allProducts[index] = {
+          ...allProducts[index],
+          ...productData
+        };
+      }
+
       status.textContent = "Product updated.";
     } else {
       const response = await fetch(`${API}/products/add`, {
@@ -186,7 +418,8 @@ async function saveProduct(event) {
       }
 
       const newProduct = await response.json();
-      changes.added.push({
+
+      allProducts.unshift({
         ...newProduct,
         ...productData,
         id: getNextId()
@@ -195,9 +428,8 @@ async function saveProduct(event) {
       status.textContent = "Product added.";
     }
 
-    saveLocalChanges(changes);
-    dialog.close();
-    await loadProducts();
+    productDialog.close();
+    showProducts();
   } catch (error) {
     status.textContent = "Could not save product.";
   }
@@ -208,32 +440,28 @@ async function deleteProduct(product) {
 
   if (!confirmed) return;
 
-  const changes = getLocalChanges();
-
   try {
     await fetch(`${API}/products/${product.id}`, {
       method: "DELETE"
     });
 
-    if (!changes.deleted.includes(product.id)) {
-      changes.deleted.push(product.id);
-    }
-
-    changes.added = changes.added.filter(
+    allProducts = allProducts.filter(
       item => item.id !== product.id
     );
 
-    delete changes.updated[product.id];
-
-    saveLocalChanges(changes);
     status.textContent = "Product deleted.";
-    await loadProducts();
+    showProducts();
   } catch (error) {
     status.textContent = "Could not delete product.";
   }
 }
 
 searchInput.addEventListener("input", () => {
+  skip = 0;
+  showProducts();
+});
+
+sortSelect.addEventListener("change", () => {
   skip = 0;
   showProducts();
 });
@@ -250,8 +478,31 @@ nextBtn.onclick = () => {
   }
 };
 
-addBtn.onclick = () => openForm();
-cancelBtn.onclick = () => dialog.close();
-form.addEventListener("submit", saveProduct);
+cartBtn.onclick = showCart;
+closeCartBtn.onclick = () => cartDialog.close();
+checkoutBtn.onclick = purchaseCart;
+
+loginBtn.onclick = () => {
+  if (currentUser) {
+    const confirmLogout = confirm("Log out?");
+    if (confirmLogout) logout();
+    return;
+  }
+
+  loginDialog.showModal();
+};
+
+loginCancelBtn.onclick = () => loginDialog.close();
+loginForm.addEventListener("submit", login);
+
+addBtn.onclick = () => openProductForm();
+cancelBtn.onclick = () => productDialog.close();
+productForm.addEventListener("submit", saveProduct);
+
+updateCartCount();
+
+if (currentUser) {
+  loginBtn.textContent = `Hi, ${currentUser.firstName}`;
+}
 
 loadProducts();

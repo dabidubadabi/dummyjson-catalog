@@ -8,9 +8,21 @@
 </head>
 <body>
   <header class="topbar">
-    <h1>Product Catalog</h1>
+    <h1>🛍️ Product Catalog</h1>
+
     <input id="search" type="search" placeholder="Search products..." />
-    <button id="addBtn">+ Add Product</button>
+
+    <select id="sortSelect">
+      <option value="">Sort by</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="title-asc">Name: A to Z</option>
+      <option value="title-desc">Name: Z to A</option>
+      <option value="rating-desc">Top Rated</option>
+    </select>
+
+    <button id="cartBtn">🛒 Cart (<span id="cartCount">0</span>)</button>
+    <button id="loginBtn">Log in</button>
   </header>
 
   <main>
@@ -24,6 +36,34 @@
     </div>
   </main>
 
+  <!-- Login -->
+  <dialog id="loginDialog">
+    <form id="loginForm">
+      <h2>Log in</h2>
+      <p class="hint">
+        Demo account:<br />
+        Username: <strong>emilys</strong><br />
+        Password: <strong>emilyspass</strong>
+      </p>
+
+      <label>
+        Username
+        <input name="username" required />
+      </label>
+
+      <label>
+        Password
+        <input name="password" type="password" required />
+      </label>
+
+      <menu>
+        <button type="button" id="loginCancelBtn">Cancel</button>
+        <button type="submit">Log in</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- Add / Edit product -->
   <dialog id="productDialog">
     <form id="productForm">
       <h2 id="dialogTitle">Add Product</h2>
@@ -60,6 +100,27 @@
         <button type="submit">Save</button>
       </menu>
     </form>
+  </dialog>
+
+  <!-- Cart -->
+  <dialog id="cartDialog">
+    <div class="cart-box">
+      <h2>Your Cart</h2>
+
+      <div id="cartItems"></div>
+
+      <div class="cart-total">
+        <span>Total</span>
+        <strong id="cartTotal">$0.00</strong>
+      </div>
+
+      <menu>
+        <button type="button" id="closeCartBtn">Close</button>
+        <button type="button" id="checkoutBtn" class="primary">
+          Purchase
+        </button>
+      </menu>
+    </div>
   </dialog>
 
   <script src="app.js"></script>
