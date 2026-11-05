@@ -3,125 +3,94 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Product Catalog</title>
+  <title>Simple Store</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="topbar">
-    <h1>🛍️ Product Catalog</h1>
 
-    <input id="search" type="search" placeholder="Search products..." />
+  <!-- LOGIN PAGE -->
+  <section id="loginPage" class="login-page">
+    <form id="loginForm" class="login-card">
+      <h1>Simple Store</h1>
+      <p class="muted">Log in to continue</p>
 
-    <select id="sortSelect">
-      <option value="">Sort by</option>
-      <option value="price-asc">Price: Low to High</option>
-      <option value="price-desc">Price: High to Low</option>
-      <option value="title-asc">Name: A to Z</option>
-      <option value="title-desc">Name: Z to A</option>
-      <option value="rating-desc">Top Rated</option>
-    </select>
-
-    <button id="cartBtn">🛒 Cart (<span id="cartCount">0</span>)</button>
-    <button id="loginBtn">Log in</button>
-  </header>
-
-  <main>
-    <p id="status">Loading products...</p>
-    <section id="grid" class="grid"></section>
-
-    <div class="pager">
-      <button id="prevBtn">Previous</button>
-      <span id="pageInfo"></span>
-      <button id="nextBtn">Next</button>
-    </div>
-  </main>
-
-  <!-- Login -->
-  <dialog id="loginDialog">
-    <form id="loginForm">
-      <h2>Log in</h2>
-      <p class="hint">
-        Demo account:<br />
-        Username: <strong>emilys</strong><br />
-        Password: <strong>emilyspass</strong>
-      </p>
-
-      <label>
-        Username
-        <input name="username" required />
+      <label>Username
+        <input name="username" placeholder="user123" required />
       </label>
 
-      <label>
-        Password
-        <input name="password" type="password" required />
+      <label>Password
+        <input name="password" type="password" placeholder="password" required />
       </label>
 
-      <menu>
-        <button type="button" id="loginCancelBtn">Cancel</button>
-        <button type="submit">Log in</button>
-      </menu>
+      <button class="btn primary full">Log in</button>
+      <p id="loginError" class="error"></p>
     </form>
-  </dialog>
+  </section>
 
-  <!-- Add / Edit product -->
-  <dialog id="productDialog">
-    <form id="productForm">
-      <h2 id="dialogTitle">Add Product</h2>
+  <!-- MAIN APP -->
+  <div id="app" class="hidden">
+    <header class="header">
+      <div class="container header-inner">
+        <h1 class="logo">Simple Store</h1>
 
-      <label>
-        Title
-        <input name="title" required />
-      </label>
+        <input id="search" type="search" placeholder="Search products..." />
 
-      <label>
-        Description
-        <textarea name="description" rows="3"></textarea>
-      </label>
+        <select id="sortSelect">
+          <option value="suggested">Suggested</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="title-asc">Name: A–Z</option>
+          <option value="rating-desc">Top rated</option>
+        </select>
 
-      <div class="row">
-        <label>
-          Price
-          <input name="price" type="number" step="0.01" min="0" required />
-        </label>
+        <button id="cartBtn" class="cart-button">
+          Cart <span id="cartCount">0</span>
+        </button>
 
-        <label>
-          Stock
-          <input name="stock" type="number" min="0" required />
-        </label>
+        <button id="logoutBtn" class="ghost-button">Log out</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="page-head">
+        <div>
+          <h2 id="sectionTitle">Suggested products</h2>
+          <p id="status" class="muted">Loading products...</p>
+        </div>
       </div>
 
-      <label>
-        Image URL
-        <input name="thumbnail" type="url" placeholder="https://..." />
-      </label>
+      <section id="grid" class="grid"></section>
 
-      <menu>
-        <button type="button" id="cancelBtn">Cancel</button>
-        <button type="submit">Save</button>
-      </menu>
-    </form>
-  </dialog>
+      <div class="pagination">
+        <button id="prevBtn" class="ghost-button">Previous</button>
+        <span id="pageInfo"></span>
+        <button id="nextBtn" class="ghost-button">Next</button>
+      </div>
+    </main>
+  </div>
 
-  <!-- Cart -->
-  <dialog id="cartDialog">
-    <div class="cart-box">
-      <h2>Your Cart</h2>
+  <!-- CART -->
+  <div id="cartOverlay" class="overlay"></div>
 
-      <div id="cartItems"></div>
+  <aside id="cartDrawer" class="cart-drawer">
+    <div class="cart-header">
+      <h2>Your cart</h2>
+      <button id="closeCartBtn" class="close-button">×</button>
+    </div>
 
-      <div class="cart-total">
+    <div id="cartItems" class="cart-items"></div>
+
+    <div class="cart-footer">
+      <div class="total-row">
         <span>Total</span>
         <strong id="cartTotal">$0.00</strong>
       </div>
 
-      <menu>
-        <button type="button" id="closeCartBtn">Close</button>
-        <button type="button" id="checkoutBtn" class="primary">
-          Purchase
-        </button>
-      </menu>
+      <button id="checkoutBtn" class="btn primary full">Checkout</button>
     </div>
-  </dialog>
+  </aside>
+
+  <div id="toast" class="toast"></div>
 
   <script src="app.js"></script>
 </body>
