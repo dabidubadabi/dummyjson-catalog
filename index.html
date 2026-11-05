@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Catalog</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Product Catalog</h1>
+    <input id="search" type="search" placeholder="Search products..." />
+    <button id="addBtn">+ Add Product</button>
+  </header>
+
+  <main>
+    <p id="status">Loading products...</p>
+    <section id="grid" class="grid"></section>
+
+    <div class="pager">
+      <button id="prevBtn">Previous</button>
+      <span id="pageInfo"></span>
+      <button id="nextBtn">Next</button>
+    </div>
+  </main>
+
+  <dialog id="productDialog">
+    <form id="productForm">
+      <h2 id="dialogTitle">Add Product</h2>
+
+      <label>
+        Title
+        <input name="title" required />
+      </label>
+
+      <label>
+        Description
+        <textarea name="description" rows="3"></textarea>
+      </label>
+
+      <div class="row">
+        <label>
+          Price
+          <input name="price" type="number" step="0.01" min="0" required />
+        </label>
+
+        <label>
+          Stock
+          <input name="stock" type="number" min="0" required />
+        </label>
+      </div>
+
+      <label>
+        Image URL
+        <input name="thumbnail" type="url" placeholder="https://..." />
+      </label>
+
+      <menu>
+        <button type="button" id="cancelBtn">Cancel</button>
+        <button type="submit">Save</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
